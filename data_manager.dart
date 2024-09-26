@@ -4,7 +4,7 @@ import 'student.dart';
 import 'course.dart';
 
 class DataManager {
-  static const String baseUrl = 'https://crudcrud.com/api/2a2b8fb404a8430c8f13f4902e7e7c18';
+  static const String baseUrl = 'https://crudcrud.com/api/c6ba1ca30ca2433ebdc44dc210c0b2ce';
 
 
   static Future<Map<String, Student>> loadStudents() async {
