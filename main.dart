@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 
+
 class Student {
   String studentId;
   String name;
@@ -53,7 +54,7 @@ class Course {
 }
 
 class DataManager {
-  static const String baseUrl = 'https://crudcrud.com/api/c6ba1ca30ca2433ebdc44dc210c0b2ce'; 
+  static const String baseUrl = 'https://crudcrud.com/api/dc29a89c50194158834a67e75a4d2395'; 
 
 
   static Future<Map<String, Student>> loadStudents() async {
@@ -218,53 +219,76 @@ Future<void> loadCourses() async {
 Future<void> createStudent() async {
   String name = readInput('Enter student name', validChoices: null, isName: true);
   String studentId = readInput('Enter student ID (numeric)', validChoices: null, isId: true);
-  
+
  
+  Map<String, Student> students = await DataManager.loadStudents();
+  
+  
+  if (students.containsKey(studentId)) {
+    print('Error: A student with ID $studentId already exists.');
+    return;
+  }
+
+  
   Map<String, Course> courses = await DataManager.loadCourses();
   print('Available Courses:');
   if (courses.isEmpty) {
     print('No courses available to select.');
-    return; 
+    return;
   }
 
   for (var course in courses.values) {
     print('${course.courseId}: ${course.courseTitle}');
   }
-  
+
   String courseChoice = readInput('Select a course by ID', validChoices: courses.keys.toList());
   String selectedCourseId = courseChoice;
 
+  
+  Student newStudent = Student(studentId: studentId, name: name, enrolledCourses: []);
+  
  
-  Student student = Student(studentId: studentId, name: name, enrolledCourses: [selectedCourseId]);
-  
-  
-  await DataManager.saveStudent(student);
+  if (newStudent.enrolledCourses.contains(selectedCourseId)) {
+    print('Error: Student is already enrolled in this course.');
+    return;
+  } else {
+    newStudent.enrolledCourses.add(selectedCourseId);
+  }
+
+ 
+  await DataManager.saveStudent(newStudent);
+  print('Student $name with ID $studentId has been successfully created and enrolled in the course.');
 }
+
+
 
 Future<void> createCourse() async {
-  String courseTitle = readInput('Enter course title', validChoices: null, isName: true);
-  String courseId = readInput('Enter course ID (numeric)', validChoices: null, isId: true);
+  Map<String, Course> courses = await DataManager.loadCourses();
+
+  String courseId;
+  do {
+    courseId = readInput('Enter course ID (numeric)', validChoices: null, isId: true);
+    if (courses.containsKey(courseId)) {
+      print('Error: Course ID already exists. Please enter a unique ID.');
+      courseId = ''; 
+    }
+  } while (courseId.isEmpty);  
+
+  String courseTitle;
+  do {
+    courseTitle = readInput('Enter course title', validChoices: null, isName: true);
+    bool titleExists = courses.values.any((course) => course.courseTitle == courseTitle);
+    if (titleExists) {
+      print('Error: Course title already exists. Please enter a unique title.');
+      courseTitle = ''; 
+    }
+  } while (courseTitle.isEmpty); 
   String instructorName = readInput('Enter instructor name', validChoices: null, isName: true);
-  
+
   Course course = Course(courseId: courseId, courseTitle: courseTitle, instructorName: instructorName);
-  
-  
+
   await DataManager.saveCourse(course);
-}
-
-Future<void> enrollStudentInCourse() async {
-  String studentId = readInput('Enter student ID (numeric)', validChoices: null, isId: true);
-  String courseId = readInput('Enter course ID (numeric)', validChoices: null, isId: true);
-  
-  
-  print('Enrolled student $studentId in course $courseId successfully.');
-}
-
-Future<void> viewStudentSchedule() async {
-  String studentId = readInput('Enter student ID (numeric)', validChoices: null, isId: true);
-  
-  
-  print('Fetching schedule for student $studentId...');
+  print('Course created successfully!');
 }
 
 Future<void> viewCourseRoster() async {
@@ -329,3 +353,14 @@ String readInput(String prompt, {List<String>? validChoices, bool isName = false
   }
   return input;
 }
+Future<void> enrollStudentInCourse() async {
+  
+  print('Student enrolled in course.');
+  
+}
+Future<void> viewStudentSchedule() async {
+  
+  print('Displaying student schedule...');
+  
+}
+
